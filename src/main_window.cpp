@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags)
 	: QMainWindow(parent, flags)
 {
 	setupUi(this);
-	setWindowTitle(QApplication::translate("MainWindow", "PixelAnnotationTool " PIXEL_ANNOTATION_TOOL_GIT_TAG, Q_NULLPTR));
+	setWindowTitle(QApplication::translate("MainWindow", "VIVE PixelAnnotationTool " PIXEL_ANNOTATION_TOOL_GIT_TAG, Q_NULLPTR));
 	list_label->setSpacing(1);
     image_canvas = NULL;
 	save_action = new QAction(tr("&Save current image"), this);
@@ -30,12 +30,14 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags)
     paste_mask_action = new QAction(tr("&Paste Mask"), this);
     clear_mask_action = new QAction(tr("&Clear Mask mask"), this);
     close_tab_action = new QAction(tr("&Close current tab"), this);
+	line_drawing_action = new QAction(tr("&line drawing mode change"), this);
     swap_action = new QAction(tr("&Swap check box Watershed"), this);
 	undo_action = new QAction(tr("&Undo"), this);
 	redo_action = new QAction(tr("&Redo"), this);
 	undo_action->setShortcuts(QKeySequence::Undo);
 	redo_action->setShortcuts(QKeySequence::Redo);
 	save_action->setShortcut(Qt::CTRL+Qt::Key_S);
+	line_drawing_action->setShortcut(Qt::CTRL + Qt::Key_A);
     swap_action->setShortcut(Qt::CTRL + Qt::Key_Space);
     copy_mask_action->setShortcut(Qt::CTRL + Qt::Key_C);
     paste_mask_action->setShortcut(Qt::CTRL + Qt::Key_V);
@@ -52,10 +54,13 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags)
     menuEdit->addAction(paste_mask_action);
     menuEdit->addAction(clear_mask_action);
     menuEdit->addAction(swap_action);
+	menuEdit->addAction(line_drawing_action);
+
 
 	tabWidget->clear();
     
 	connect(button_watershed      , SIGNAL(released())                        , this, SLOT(runWatershed()  ));
+	connect(line_drawing_action   , SIGNAL(triggered())                       , this, SLOT(changeLineDrawingMode()));
     connect(swap_action           , SIGNAL(triggered())                       , this, SLOT(swapView()      ));
 	connect(actionOpen_config_file, SIGNAL(triggered())                       , this, SLOT(loadConfigFile()));
 	connect(actionSave_config_file, SIGNAL(triggered())                       , this, SLOT(saveConfigFile()));
@@ -68,6 +73,19 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags)
     connect(tree_widget_img       , SIGNAL(itemClicked(QTreeWidgetItem *,int)), this, SLOT(treeWidgetClicked()));
     
 	labels = defaulfLabels();
+
+	QFile open_file("./vive_semantic_segmentation.json");
+	if (!open_file.open(QIODevice::ReadOnly)) {
+		qWarning("Couldn't open save file.");
+		return;
+	}
+	QJsonObject object;
+	QByteArray saveData = open_file.readAll();
+	QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
+
+	labels.clear();
+	labels.read(loadDoc.object());
+	open_file.close();
 
 	loadConfigLabels();
 
@@ -203,6 +221,7 @@ void MainWindow::updateConnect(const ImageCanvas * ic) {
 	connect(redo_action, SIGNAL(triggered()), ic, SLOT(redo()));
 	connect(save_action, SIGNAL(triggered()), ic, SLOT(saveMask()));
     connect(checkbox_border_ws, SIGNAL(clicked()), ic, SLOT(update()));
+	connect(checkbox_line_drawing_mode, SIGNAL(clicked()), ic, SLOT(update()));
     
 }
 
@@ -218,12 +237,20 @@ void MainWindow::allDisconnnect(const ImageCanvas * ic) {
     disconnect(redo_action, SIGNAL(triggered()), ic, SLOT(redo()));
     disconnect(save_action, SIGNAL(triggered()), ic, SLOT(saveMask()));
     disconnect(checkbox_border_ws, SIGNAL(clicked()), ic, SLOT(update()));
+	disconnect(checkbox_line_drawing_mode, SIGNAL(clicked()), ic, SLOT(update()));
+
 }
 
 ImageCanvas * MainWindow::newImageCanvas() {
-    ImageCanvas * ic = new ImageCanvas( this);
+	ImageCanvas * ic = new ImageCanvas( this);
 	ic->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 	ic->setScaledContents(true);
+
+	if (checkbox_line_drawing_mode->checkState() == Qt::CheckState::Checked)
+	{
+		ic->is_draw_line_mode_ = true;
+	}
+
 	updateConnect(ic);
 	return ic;
 }
@@ -233,6 +260,12 @@ void MainWindow::updateConnect(int index) {
         return;
     allDisconnnect(image_canvas);
     image_canvas = getImageCanvas(index);
+
+	if (checkbox_line_drawing_mode->checkState() == Qt::CheckState::Checked)
+	{
+		image_canvas->is_draw_line_mode_ = true;
+	}
+
     if(image_canvas!= NULL)
         list_label->setEnabled(true);
     else 
@@ -408,6 +441,15 @@ ImageCanvas * MainWindow::getCurrentImageCanvas() {
     ImageCanvas * ic = getImageCanvas(index);
     return ic;
     
+}
+
+void MainWindow::changeLineDrawingMode() 
+{
+	checkbox_line_drawing_mode->setCheckState(checkbox_line_drawing_mode->checkState() == Qt::CheckState::Checked ? Qt::CheckState::Unchecked : Qt::CheckState::Checked);
+	ImageCanvas * ic = getCurrentImageCanvas();
+	if (ic == NULL) return;
+	//ic->is_draw_line_mode_ ^= true;
+	ic->update();
 }
 
 void MainWindow::swapView() {

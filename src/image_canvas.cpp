@@ -27,6 +27,8 @@ ImageCanvas::ImageCanvas(MainWindow *ui) :
     _scroll_parent->setBackgroundRole(QPalette::Dark);
     _scroll_parent->setWidget(this);
 
+	is_draw_line_mode_ = true;
+
 }
 
 ImageCanvas::~ImageCanvas() {
@@ -53,9 +55,17 @@ void ImageCanvas::loadImage(const QString &filename) {
 	if (!file.exists()) return;
 
 	_image = mat2QImage(cv::imread(_img_file.toStdString()));
+
+	QStringList tokens = file.dir().absolutePath().split("/");
+	QString src_val_folder_name = tokens.value(tokens.length() - 1);
+	QStringList src_val_tokens = src_val_folder_name.split("_");
+	QString src_val_prefix = src_val_tokens.value(0);
+
 	
-	_mask_file = file.dir().absolutePath()+ "/" + file.baseName() + "_mask.png";
-	_watershed_file = file.dir().absolutePath()+ "/" + file.baseName() + "_watershed_mask.png";
+	_mask_file = file.dir().absolutePath()+ "/../../label/" + src_val_prefix + "_label/" + file.baseName() + ".png";
+	//_mask_file = file.dir().absolutePath() + "/" + file.baseName() + "_mask.png";
+	_watershed_file = file.dir().absolutePath()+ "/../../label/" + src_val_prefix + "_label/" + file.baseName() + "_watershed_mask.png";
+	_color_file = file.dir().absolutePath() + "/../../label/" + src_val_prefix + "_label/" + file.baseName() + "_color_mask.png";
 
 	_watershed = ImageMask(_image.size());
 	_undo_list.clear();
@@ -80,7 +90,10 @@ void ImageCanvas::saveMask() {
 	if (isFullZero(_mask.id))
 		return;
 
-	_mask.id.save(_mask_file);
+	//_mask.id.save(_mask_file);
+	QImage filtered_id = map255to0idToMono(_mask.id);
+	filtered_id.save(_mask_file);
+
 	if (!_watershed.id.isNull()) {
         QImage watershed = _watershed.id;
         if (!_ui->checkbox_border_ws->isChecked()) {
@@ -88,8 +101,8 @@ void ImageCanvas::saveMask() {
         }
 		watershed.save(_watershed_file);
 		QFileInfo file(_img_file);
-		QString color_file = file.dir().absolutePath() + "/" + file.baseName() + "_color_mask.png";
-		idToColor(watershed, _ui->id_labels).save(color_file);
+		//QString color_file = file.dir().absolutePath() + "/" + file.baseName() + "_color_mask.png";
+		idToColor(watershed, _ui->id_labels).save(_color_file);
 	}
     _undo_list.clear();
     _undo_index = 0;
@@ -142,8 +155,32 @@ void ImageCanvas::mouseMoveEvent(QMouseEvent * e) {
 	_mouse_pos.setX(e->x());
 	_mouse_pos.setY(e->y());
 
-	if (_button_is_pressed) 
+	if (_button_is_pressed)
+	{
 		_drawFillCircle(e);
+
+		int x, y;
+		if (_pen_size > 0) {
+			x = e->x() / _scale;// -_pen_size / 2;
+			y = e->y() / _scale;// -_pen_size / 2;
+		}
+		else {
+			x = (e->x() + 0.5) / _scale;
+			y = (e->y() + 0.5) / _scale;
+		}
+
+		int prev_x = _left_press_pos.x();
+		int prev_y = _left_press_pos.y();
+
+		int dist = (x - prev_x)*(x - prev_x) + (y - prev_y)*(y - prev_y);
+
+		if (dist > 10 * 10)
+		{
+			_linePts.clear();
+		}
+
+		emit(_ui->button_watershed->released());
+	}
 
 	update();
 }
@@ -157,6 +194,24 @@ void ImageCanvas::mouseReleaseEvent(QMouseEvent * e) {
 	if(e->button() == Qt::LeftButton) {
 		_button_is_pressed = false;
 		
+		if (_linePts.size() == 1)
+		{
+			int x, y;
+			if (_pen_size > 0) {
+				x = e->x() / _scale;// -_pen_size / 2;
+				y = e->y() / _scale;// -_pen_size / 2;
+			}
+			else {
+				x = (e->x() + 0.5) / _scale;
+				y = (e->y() + 0.5) / _scale;
+			}
+
+			_drawLine(e);
+			_linePts.clear();
+			_linePts.append(QPoint(x, y));
+			emit(_ui->button_watershed->released());
+		}
+
 		if (_undo) {
 			QMutableListIterator<ImageMask> it(_undo_list);
 			int i = 0;
@@ -188,15 +243,16 @@ void ImageCanvas::mouseReleaseEvent(QMouseEvent * e) {
 		if(label->item != NULL)
 			emit(_ui->list_label->currentItemChanged(label->item, NULL));
 
+		_linePts.clear();
+
 		refresh();
 	}
-
-	if (e->button() == Qt::MiddleButton)
+	else if (e->button() == Qt::MiddleButton)
 	{
 		int x, y;
 		if (_pen_size > 0) {
-			x = e->x() / _scale;
-			y = e->y() / _scale;
+			x = e->x() / _scale;// -_pen_size / 2;
+			y = e->y() / _scale;// -_pen_size / 2;
 		}
 		else {
 			x = (e->x() + 0.5) / _scale;
@@ -204,16 +260,52 @@ void ImageCanvas::mouseReleaseEvent(QMouseEvent * e) {
 		}
 
 		_mask.exchangeLabel(x, y, _ui->id_labels, _color);
+		emit(_ui->button_watershed->released());
+
+		_linePts.clear();
+
 		update();
 	}
 }
 
 void ImageCanvas::mousePressEvent(QMouseEvent * e) {
+	
 	setFocus();
-	if (e->button() == Qt::LeftButton) {
+	
+	if (e->button() == Qt::LeftButton && is_draw_line_mode_) {
+		_button_is_pressed = true;
+
+		int x, y;
+		if (_pen_size > 0) {
+			x = e->x() / _scale;// -_pen_size / 2;
+			y = e->y() / _scale;// -_pen_size / 2;
+		}
+		else {
+			x = (e->x() + 0.5) / _scale;
+			y = (e->y() + 0.5) / _scale;
+		}
+
+		_left_press_pos.setX(x);
+		_left_press_pos.setY(y);
+
+
+		if (_linePts.size() == 0)
+		{
+			_drawFillCircle(e);
+			_linePts.append(_left_press_pos);
+			emit(_ui->button_watershed->released());
+		}
+		
+
+		//emit(_ui->button_watershed->released());
+	}
+	else if (e->button() == Qt::LeftButton) {
 		_button_is_pressed = true;
 		_drawFillCircle(e);
+		emit(_ui->button_watershed->released());
 	}
+
+
 }
 
 void ImageCanvas::_drawFillCircle(QMouseEvent * e) {
@@ -229,6 +321,21 @@ void ImageCanvas::_drawFillCircle(QMouseEvent * e) {
 	update();
 }
 
+void ImageCanvas::_drawLine(QMouseEvent * e)
+{
+	if (_pen_size > 0) {
+		int x = e->x() / _scale;// -_pen_size / 2;
+		int y = e->y() / _scale;// -_pen_size / 2;
+		_mask.drawFillLine(_linePts.back().x(), _linePts.back().y(), x, y, _pen_size, _color);
+	}
+	else {
+		int x = (e->x() + 0.5) / _scale;
+		int y = (e->y() + 0.5) / _scale;
+		_mask.drawFillLine(_linePts.back().x(), _linePts.back().y(), x, y, 1.0, _color);
+	}
+	update();
+}
+
 void ImageCanvas::clearMask() {
 	_mask = ImageMask(_image.size());
 	_watershed = ImageMask(_image.size());
@@ -240,6 +347,8 @@ void ImageCanvas::clearMask() {
 
 void ImageCanvas::wheelEvent(QWheelEvent * event) {
 	int delta = event->delta() > 0 ? 1 : -1;
+	int alpha_delta = event->delta() > 0 ? 10 : -10;
+
 	if (Qt::ShiftModifier == event->modifiers()) {
         _scroll_parent->verticalScrollBar()->setEnabled(false);
 		int value = _ui->spinbox_pen_size->value() + delta * _ui->spinbox_pen_size->singleStep();
@@ -256,14 +365,31 @@ void ImageCanvas::wheelEvent(QWheelEvent * event) {
 		_ui->spinbox_scale->setValue(value);
 		scaleChanged(value);
 		repaint();
-	} else {
+	}
+	else if (Qt::AltModifier == event->modifiers()) {
+		_scroll_parent->verticalScrollBar()->setEnabled(false);
+		double value = _ui->spinbox_alpha->value() + alpha_delta * _ui->spinbox_alpha->singleStep();
+		value = std::min<double>(_ui->spinbox_alpha->maximum(), value);
+		value = std::max<double>(_ui->spinbox_alpha->minimum(), value);
+
+		_ui->spinbox_alpha->setValue(value);
+		alphaChanged(value);
+		repaint();
+
+	} 
+	else {
         _scroll_parent->verticalScrollBar()->setEnabled(true);
 	}
 }
 
 void ImageCanvas::keyPressEvent(QKeyEvent * event) {
+
 	if (event->key() == Qt::Key_Space) {
 		emit(_ui->button_watershed->released());
+	}
+
+	if (event->key() == Qt::Key_A) {
+		_linePts.clear();
 	}
 }
 
@@ -278,10 +404,10 @@ void ImageCanvas::setMask(const ImageMask & mask) {
 
 void ImageCanvas::setActionMask(const ImageMask & mask) {
     setMask(mask);
-    _undo_list.push_back(_mask);
-    _undo_index++;
-    _ui->setStarAtNameOfTab(true);
-    _ui->undo_action->setEnabled(true);
+    //_undo_list.push_back(_mask);
+    //_undo_index++;
+	//_ui->setStarAtNameOfTab(true);
+    //_ui->undo_action->setEnabled(true);
 }
 
 void ImageCanvas::setId(int id) {

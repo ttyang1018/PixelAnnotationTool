@@ -51,6 +51,7 @@ public:
     QAction        * clear_mask_action;
     QAction        * close_tab_action;
 	QAction        * undo_action  ;
+	QAction        * line_drawing_action;
     QAction        * swap_action;
 	QAction        * redo_action  ;
 	QString          curr_open_dir;
@@ -69,6 +70,7 @@ public slots:
 	void saveConfigFile();
 	void loadConfigFile();
 	void runWatershed();
+	void changeLineDrawingMode();
     void swapView();
 	void on_tree_widget_img_currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
 	void on_actionOpenDir_triggered();

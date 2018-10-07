@@ -42,6 +42,43 @@ void idToColor(const QImage &image_id, const Id2Labels& id_label, QImage *result
 	}
 }
 
+void map0to255id(QImage &image_id)
+{
+	for (int y = 0; y < image_id.height(); y++) {
+		uchar * line_in = image_id.scanLine(y);
+		for (int x = 0; x < image_id.width() * 3; x += 1) {
+			int id = line_in[x];
+			if (id == 0)
+			{
+				line_in[x] = 255;
+			}
+		}
+	}
+}
+
+QImage map255to0idToMono(const QImage &image_id)
+{
+	QImage result(image_id.size(), QImage::Format_Grayscale8);
+
+	for (int y = 0; y < image_id.height(); y++) {
+		const uchar * line_in = image_id.scanLine(y);
+		uchar * line_out = result.scanLine(y);
+		for (int x = 0, out_x=0; x < image_id.width() * 3; x += 3, out_x++) {
+			int id = line_in[x];
+			if (id == 255)
+			{
+				line_out[out_x] = 0;
+			}
+			else
+			{
+				line_out[out_x] = id;
+			}
+		}
+	}
+
+	return result;
+}
+
 QColor invColor(const QColor& color) {
 	int h, s, v;
 	color.getHsv(&h, &s, &v);

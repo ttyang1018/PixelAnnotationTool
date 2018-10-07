@@ -32,6 +32,8 @@ public:
 	QScrollArea * getScrollParent() const { return _scroll_parent; }
     bool isNotSaved() const { return _undo_list.size() > 1; }
 
+	bool is_draw_line_mode_;
+
 protected:
 	void mouseMoveEvent(QMouseEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;
@@ -54,6 +56,8 @@ private:
 	
 	void _initPixmap();
 	void _drawFillCircle(QMouseEvent * e);
+	void _drawLine(QMouseEvent * e);
+
 
 	QScrollArea     *_scroll_parent    ;
 	double           _scale            ;
@@ -68,9 +72,12 @@ private:
 	QString          _img_file         ;
 	QString          _mask_file        ;
 	QString          _watershed_file   ;
+	QString          _color_file       ;
 	ColorMask        _color            ;
 	int              _pen_size         ;
 	bool             _button_is_pressed;
+	QList<QPoint>    _linePts          ;
+	QPoint           _left_press_pos   ;
 
 };
 

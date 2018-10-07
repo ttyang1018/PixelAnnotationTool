@@ -11,6 +11,8 @@ cv::Mat qImage2Mat(QImage const& src);
 QImage mat2QImage(cv::Mat const& src);
 QImage idToColor(const QImage &image_id, const Id2Labels& id_label);
 void idToColor(const QImage &image_id, const Id2Labels& id_label, QImage *result);
+void map0to255id(QImage &image_id);
+QImage map255to0idToMono(const QImage &image_id);
 inline bool operator<(const QColor & a, const QColor & b) { return a.rgb() < b.rgb(); }
 QColor invColor(const QColor & color);
 QVector<QColor> colorMap(int size);
