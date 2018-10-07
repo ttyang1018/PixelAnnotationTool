@@ -221,7 +221,6 @@ void MainWindow::updateConnect(const ImageCanvas * ic) {
 	connect(redo_action, SIGNAL(triggered()), ic, SLOT(redo()));
 	connect(save_action, SIGNAL(triggered()), ic, SLOT(saveMask()));
     connect(checkbox_border_ws, SIGNAL(clicked()), ic, SLOT(update()));
-	connect(checkbox_line_drawing_mode, SIGNAL(clicked()), ic, SLOT(update()));
     
 }
 
@@ -237,7 +236,6 @@ void MainWindow::allDisconnnect(const ImageCanvas * ic) {
     disconnect(redo_action, SIGNAL(triggered()), ic, SLOT(redo()));
     disconnect(save_action, SIGNAL(triggered()), ic, SLOT(saveMask()));
     disconnect(checkbox_border_ws, SIGNAL(clicked()), ic, SLOT(update()));
-	disconnect(checkbox_line_drawing_mode, SIGNAL(clicked()), ic, SLOT(update()));
 
 }
 
@@ -245,11 +243,6 @@ ImageCanvas * MainWindow::newImageCanvas() {
 	ImageCanvas * ic = new ImageCanvas( this);
 	ic->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 	ic->setScaledContents(true);
-
-	if (checkbox_line_drawing_mode->checkState() == Qt::CheckState::Checked)
-	{
-		ic->is_draw_line_mode_ = true;
-	}
 
 	updateConnect(ic);
 	return ic;
@@ -260,11 +253,6 @@ void MainWindow::updateConnect(int index) {
         return;
     allDisconnnect(image_canvas);
     image_canvas = getImageCanvas(index);
-
-	if (checkbox_line_drawing_mode->checkState() == Qt::CheckState::Checked)
-	{
-		image_canvas->is_draw_line_mode_ = true;
-	}
 
     if(image_canvas!= NULL)
         list_label->setEnabled(true);
@@ -445,7 +433,7 @@ ImageCanvas * MainWindow::getCurrentImageCanvas() {
 
 void MainWindow::changeLineDrawingMode() 
 {
-	checkbox_line_drawing_mode->setCheckState(checkbox_line_drawing_mode->checkState() == Qt::CheckState::Checked ? Qt::CheckState::Unchecked : Qt::CheckState::Checked);
+	
 	ImageCanvas * ic = getCurrentImageCanvas();
 	if (ic == NULL) return;
 	//ic->is_draw_line_mode_ ^= true;
