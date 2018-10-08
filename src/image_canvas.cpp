@@ -99,8 +99,8 @@ void ImageCanvas::saveMask() {
         if (!_ui->checkbox_border_ws->isChecked()) {
             watershed = removeBorder(_watershed.id, _ui->id_labels);
         }
-		watershed.save(_watershed_file);
-		QFileInfo file(_img_file);
+		//watershed.save(_watershed_file);
+		//QFileInfo file(_img_file);
 		//QString color_file = file.dir().absolutePath() + "/" + file.baseName() + "_color_mask.png";
 		idToColor(watershed, _ui->id_labels).save(_color_file);
 	}
@@ -145,8 +145,18 @@ void ImageCanvas::paintEvent(QPaintEvent *event) {
 		_mouse_pos.x() <= QLabel::size().width()-10 &&
 		_mouse_pos.y() <= QLabel::size().height()-10) {
 		painter.setBrush(QBrush(_color.color));
-		painter.setPen(QPen(QBrush(_color.color), 1.0));
-		painter.drawEllipse(_mouse_pos.x() / _scale - _pen_size / 2, _mouse_pos.y() / _scale - _pen_size / 2, _pen_size, _pen_size);
+
+		if (_linePts.size() == 1)
+		{
+			painter.setPen(QPen(QBrush(_color.color), _pen_size));
+			painter.drawLine(_mouse_pos.x() / _scale, _mouse_pos.y() / _scale, _linePts.back().x(), _linePts.back().y());
+		}
+		else
+		{
+			painter.setPen(QPen(QBrush(_color.color), 1.0));
+			painter.drawEllipse(_mouse_pos.x() / _scale - _pen_size / 2, _mouse_pos.y() / _scale - _pen_size / 2, _pen_size, _pen_size);
+		}
+		
 		painter.end();
 	}
 }
