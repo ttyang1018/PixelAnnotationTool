@@ -1,0 +1,246 @@
+{
+    "labels": {
+        "bicycle": {
+            "categorie": "vehicle",
+            "color": [
+                4,
+                200,
+                3
+            ],
+            "id": 1,
+            "id_categorie": 7,
+            "name": "1_床"
+        },
+        "bridge": {
+            "categorie": "construction",
+            "color": [
+                143,
+                255,
+                140
+            ],
+            "id": 2,
+            "id_categorie": 2,
+            "name": "2_書本"
+        },
+        "building": {
+            "categorie": "construction",
+            "color": [
+                11,
+                102,
+                255
+            ],
+            "id": 3,
+            "id_categorie": 2,
+            "name": "3_天花板"
+        },
+        "bus": {
+            "categorie": "vehicle",
+            "color": [
+                0,
+                31,
+                255
+            ],
+            "id": 4,
+            "id_categorie": 7,
+            "name": "4_椅子_沙發"
+        },
+        "car": {
+            "categorie": "vehicle",
+            "color": [
+                180,
+                120,
+                120
+            ],
+            "id": 5,
+            "id_categorie": 7,
+            "name": "5_地面"
+        },
+        "caravan": {
+            "categorie": "vehicle",
+            "color": [
+                255,
+                51,
+                7
+            ],
+            "id": 6,
+            "id_categorie": 7,
+            "name": "6_家具:櫥櫃抽屜架子"
+        },
+        "dynamic": {
+            "categorie": "void",
+            "color": [
+                255,
+                6,
+                51
+            ],
+            "id": 7,
+            "id_categorie": 0,
+            "name": "7_人走的門"
+        },
+        "ego vehicle": {
+            "categorie": "void",
+            "color": [
+                255,
+                173,
+                0
+            ],
+            "id": 8,
+            "id_categorie": 0,
+            "name": "8_壁畫_照片"
+        },
+        "fence": {
+            "categorie": "construction",
+            "color": [
+                160,
+                150,
+                20
+            ],
+            "id": 9,
+            "id_categorie": 2,
+            "name": "9_馬桶"
+        },
+        "ground": {
+            "categorie": "void",
+            "color": [
+                5,
+                250,
+                230
+            ],
+            "id": 10,
+            "id_categorie": 0,
+            "name": "_10_桌子"
+        },
+        "guard rail": {
+            "categorie": "construction",
+            "color": [
+                255,
+                235,
+                0
+            ],
+            "id": 11,
+            "id_categorie": 2,
+            "name": "_11_電視電腦螢幕"
+        },
+        "motorcycle": {
+            "categorie": "vehicle",
+            "color": [
+                120,
+                120,
+                120
+            ],
+            "id": 12,
+            "id_categorie": 7,
+            "name": "_12_牆"
+        },
+        "other": {
+            "categorie": "void",
+            "color": [
+                112,
+                224,
+                255
+            ],
+            "id": 13,
+            "id_categorie": 0,
+            "name": "_13_窗戶"
+        },
+        "out of roi": {
+            "categorie": "void",
+            "color": [
+                80,
+                50,
+                50
+            ],
+            "id": 14,
+            "id_categorie": 0,
+            "name": "_14_人"
+        },
+        "parking": {
+            "categorie": "flat",
+            "color": [
+                255,
+                0,
+                255
+            ],
+            "id": 15,
+            "id_categorie": 1,
+            "name": "_15_其他"
+        },
+		"stairs": {
+            "categorie": "flat",
+            "color": [
+                180,
+                180,
+                120
+            ],
+            "id": 16,
+            "id_categorie": 1,
+            "name": "_16_階梯"
+        },
+		"lamp": {
+            "categorie": "flat",
+            "color": [
+                255,
+                255,
+                120
+            ],
+            "id": 17,
+            "id_categorie": 1,
+            "name": "_17_檯燈立燈"
+        },
+		"plant": {
+            "categorie": "flat",
+            "color": [
+                0,
+                255,
+                0
+            ],
+            "id": 18,
+            "id_categorie": 1,
+            "name": "_18_植物盆栽"
+        },
+		"pillar": {
+            "categorie": "flat",
+            "color": [
+                255,
+                0,
+                0
+            ],
+            "id": 19,
+            "id_categorie": 1,
+            "name": "_19_柱子"
+        },
+		"curtain": {
+            "categorie": "flat",
+            "color": [
+                120,
+                60,
+                60
+            ],
+            "id": 20,
+            "id_categorie": 1,
+            "name": "_20_窗簾"
+        },
+		"bedpillow": {
+            "categorie": "flat",
+            "color": [
+                0,
+                0,
+                125
+            ],
+            "id": 21,
+            "id_categorie": 1,
+            "name": "_21_床枕頭"
+        },
+        "wall": {
+            "categorie": "construction",
+            "color": [
+                255,
+                255,
+                255
+            ],
+            "id": 255,
+            "id_categorie": 2,
+            "name": "_255_忽略"
+        }
+    }
+}

@@ -28,6 +28,7 @@ ImageCanvas::ImageCanvas(MainWindow *ui) :
     _scroll_parent->setWidget(this);
 
 	is_draw_line_mode_ = true;
+	_is_saved = true;
 
 }
 
@@ -104,9 +105,11 @@ void ImageCanvas::saveMask() {
 		//QString color_file = file.dir().absolutePath() + "/" + file.baseName() + "_color_mask.png";
 		idToColor(watershed, _ui->id_labels).save(_color_file);
 	}
-    _undo_list.clear();
-    _undo_index = 0;
+    //_undo_list.clear();
+    //_undo_index = 0;
     _ui->setStarAtNameOfTab(false);
+
+	_is_saved = true;
 }
 
 void ImageCanvas::scaleChanged(double scale) {
@@ -201,7 +204,10 @@ void ImageCanvas::setSizePen(int pen_size) {
 
 
 void ImageCanvas::mouseReleaseEvent(QMouseEvent * e) {
-	if(e->button() == Qt::LeftButton) {
+	if(e->button() == Qt::LeftButton) 
+	{
+
+		_is_saved = false;
 		_button_is_pressed = false;
 		
 		if (_linePts.size() == 1)
@@ -259,6 +265,8 @@ void ImageCanvas::mouseReleaseEvent(QMouseEvent * e) {
 	}
 	else if (e->button() == Qt::MiddleButton)
 	{
+		_is_saved = false;
+
 		int x, y;
 		if (_pen_size > 0) {
 			x = e->x() / _scale;// -_pen_size / 2;
@@ -274,7 +282,23 @@ void ImageCanvas::mouseReleaseEvent(QMouseEvent * e) {
 
 		_linePts.clear();
 
-		update();
+		if (_undo) {
+			QMutableListIterator<ImageMask> it(_undo_list);
+			int i = 0;
+			while (it.hasNext()) {
+				it.next();
+				if (i++ >= _undo_index)
+					it.remove();
+			}
+			_undo = false;
+			_ui->redo_action->setEnabled(false);
+		}
+		_undo_list.push_back(_mask);
+		_undo_index++;
+		_ui->setStarAtNameOfTab(true);
+		_ui->undo_action->setEnabled(true);
+
+		//update();
 	}
 }
 
