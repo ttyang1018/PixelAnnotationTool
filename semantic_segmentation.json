@@ -185,7 +185,7 @@
             ],
             "id": 17,
             "id_categorie": 1,
-            "name": "_17_檯燈立燈"
+            "name": "_17_人造光源"
         },
 		"plant": {
             "categorie": "flat",
@@ -218,7 +218,7 @@
             ],
             "id": 20,
             "id_categorie": 1,
-            "name": "_20_窗簾"
+            "name": "_20_簾子"
         },
 		"bedpillow": {
             "categorie": "flat",
@@ -230,6 +230,17 @@
             "id": 21,
             "id_categorie": 1,
             "name": "_21_床枕頭"
+        },
+		"other_window": {
+            "categorie": "flat",
+            "color": [
+                112,
+                174,
+                205
+            ],
+            "id": 22,
+            "id_categorie": 1,
+            "name": "_22_其他窗簾"
         },
         "wall": {
             "categorie": "construction",
